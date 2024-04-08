@@ -564,8 +564,8 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     if has_input_controller:
         print("You can now move your controller to drive your car.")
         if isinstance(ctr, JoystickController):
-            ctr.set_tub(tub_writer.tub)
             ctr.print_controls()
+    ctr.set_tub(tub_writer.tub)
 
     # run the vehicle
     V.start(rate_hz=cfg.DRIVE_LOOP_HZ, max_loop_count=cfg.MAX_LOOPS)
@@ -697,7 +697,7 @@ def add_user_controller(V, cfg, use_joystick, input_image='ui/image_array'):
     ctr = LocalWebController(port=cfg.WEB_CONTROL_PORT, mode=cfg.WEB_INIT_MODE)
     V.add(ctr,
           inputs=[input_image, 'tub/num_records', 'user/mode', 'recording'],
-          outputs=['user/steering', 'user/throttle', 'user/mode', 'recording', 'web/buttons'],
+          outputs=['user/steering', 'user/throttle', 'user/mode', 'recording', 'deleting', 'web/buttons'],
           threaded=True)
 
     #

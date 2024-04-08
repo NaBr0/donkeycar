@@ -209,8 +209,8 @@ def drive(cfg, use_joystick=False, camera_type='single', meta=[]):
     if has_input_controller:
         print("You can now move your controller to drive your car.")
         if isinstance(ctr, JoystickController):
-            ctr.set_tub(tub_writer.tub)
             ctr.print_controls()
+    ctr.set_tub(tub_writer.tub)
 
     #
     # run the vehicle

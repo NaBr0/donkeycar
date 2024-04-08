@@ -14,6 +14,7 @@ var driveHandler = new function() {
         },
         'brakeOn': true,
         'recording': false,
+        'deleting': false,
         'driveMode': "user",
         'pilot': 'None',
         'session': 'None',
@@ -124,6 +125,7 @@ var driveHandler = new function() {
       $(document).keydown(function(e) {
           if(e.which == 32) { toggleBrake() }  // 'space'  brake
           if(e.which == 82) { toggleRecording() }  // 'r'  toggle recording
+          if(e.which == 68) { toggleDeleting() }  // 'd'  toggle deleting
           if(e.which == 73) { throttleUp() }  // 'i'  throttle up
           if(e.which == 75) { throttleDown() } // 'k'  slow down
           if(e.which == 74) { angleLeft() } // 'j' turn left
@@ -148,6 +150,10 @@ var driveHandler = new function() {
 
       $('#record_button').click(function () {
         toggleRecording();
+      });
+
+      $('#delete_button').click(function () {
+        toggleDeleting();
       });
 
       $('#brake_button').click(function() {
@@ -338,6 +344,7 @@ var driveHandler = new function() {
                 case 'throttle': data['throttle'] = state.tele.user.throttle; break;
                 case 'drive_mode': data['drive_mode'] = state.driveMode; break;
                 case 'recording': data['recording'] = state.recording; break;
+                case 'deleting': data['deleting'] = state.deleting; break;
                 case 'buttons': data['buttons'] = state.buttons; break;
                 default: console.log(`Unexpected post field: '${field}'`); break;
             }
@@ -515,6 +522,11 @@ var driveHandler = new function() {
     var toggleRecording = function(){
       state.recording = !state.recording
       postDrive(['recording']);
+    };
+
+    var toggleDeleting = function(){
+      state.deleting = true;
+      postDrive(['deleting']);
     };
 
     var toggleBrake = function(){

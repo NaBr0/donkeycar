@@ -416,8 +416,8 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None, camera_type
             print("You can now go to <your hostname.local>:%d to drive your car." % cfg.WEB_CONTROL_PORT)
     elif isinstance(ctr, JoystickController):
         print("You can now move your joystick to drive your car.")
-        ctr.set_tub(tub_writer.tub)
         ctr.print_controls()
+    ctr.set_tub(tub_writer.tub)
 
     #run the vehicle for 20 seconds
     V.start(rate_hz=cfg.DRIVE_LOOP_HZ, max_loop_count=cfg.MAX_LOOPS)

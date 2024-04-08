@@ -43,6 +43,7 @@ class RemoteWebServer():
         self.mode = 'user'
         self.mode_latch = None
         self.recording = False
+        self.deleting = False
         # use one session for all requests
         self.session = requests.Session()
 
@@ -116,6 +117,9 @@ class LocalWebController(tornado.web.Application):
         self.mode_latch = None
         self.recording = False
         self.recording_latch = None
+        self.tub = None
+        self.num_records_to_erase = 100
+        self.deleting = False
         self.buttons = {}  # latched button values for processing
 
         self.port = port
@@ -143,6 +147,18 @@ class LocalWebController(tornado.web.Application):
         logger.info(f"You can now go to {gethostname()}.local:{port} to "
                     f"drive your car.")
 
+    def set_tub(self, tub):
+        self.tub = tub
+
+    def erase_last_N_records(self):
+        logger.info('Trying to erase')
+        if self.tub is not None:
+            try:
+                self.tub.delete_last_n_records(self.num_records_to_erase)
+                logger.info('deleted last %d records.' % self.num_records_to_erase)
+            except:
+                logger.info('failed to erase')
+
     def update(self):
         """ Start the tornado webserver. """
         asyncio.set_event_loop(asyncio.new_event_loop())
@@ -161,6 +177,7 @@ class LocalWebController(tornado.web.Application):
                     logger.warning("Error writing websocket message",
                                    exc_info=e)
                     pass
+
 
     def run_threaded(self, img_arr=None, num_records=0, mode=None, recording=None):
         """
@@ -190,7 +207,10 @@ class LocalWebController(tornado.web.Application):
             self.recording = self.recording_latch;
             self.recording_latch = None;
             changes["recording"] = self.recording;
-
+        if self.deleting is not None:
+            self.deleting = None
+            changes["deleting"] = None
+            
         # Send record count to websocket clients
         if (self.num_records is not None and self.recording is True):
             if self.num_records % 10 == 0:
@@ -211,7 +231,7 @@ class LocalWebController(tornado.web.Application):
             logger.debug(str(changes))
             self.loop.add_callback(lambda: self.update_wsclients(changes))
 
-        return self.angle, self.throttle, self.mode, self.recording, buttons
+        return self.angle, self.throttle, self.mode, self.recording, self.deleting, buttons
 
     def run(self, img_arr=None, num_records=0, mode=None, recording=None):
         return self.run_threaded(img_arr, num_records, mode, recording)
@@ -241,6 +261,8 @@ class DriveAPI(RequestHandler):
             self.application.mode = data['drive_mode']
         if data.get('recording') is not None:
             self.application.recording = data['recording']
+        if data.get('deleting') is not None:
+            self.application.deleting = data['deleting']
         if data.get('buttons') is not None:
             latch_buttons(self.application.buttons, data['buttons'])
 
@@ -293,6 +315,8 @@ class WebSocketDriveAPI(tornado.websocket.WebSocketHandler):
         if data.get('recording') is not None:
             self.application.recording = data['recording']
             self.application.recording_latch = self.application.recording
+        if data.get('deleting') is not None:
+            self.application.erase_last_N_records()
         if data.get('buttons') is not None:
             latch_buttons(self.application.buttons, data['buttons'])
 
